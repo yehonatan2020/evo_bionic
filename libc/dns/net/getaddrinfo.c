@@ -109,8 +109,6 @@
 #include "nsswitch.h"
 #include "private/bionic_defs.h"
 
-#include "hosts_cache.h"
-
 typedef union sockaddr_union {
     struct sockaddr     generic;
     struct sockaddr_in  in;
@@ -387,7 +385,7 @@ static int
 _have_ipv4(unsigned mark, uid_t uid) {
 	static const struct sockaddr_in sin_test = {
 		.sin_family = AF_INET,
-		.sin_addr.s_addr = __constant_htonl(0x01010101L)  // 1.1.1.1
+		.sin_addr.s_addr = __constant_htonl(0x08080808L)  // 8.8.8.8
 	};
 	sockaddr_union addr = { .in = sin_test };
 	return _find_src_addr(&addr.generic, NULL, mark, uid) == 1;
@@ -2126,14 +2124,6 @@ _files_getaddrinfo(void *rv, void *cb_data, va_list ap)
 
 	name = va_arg(ap, char *);
 	pai = va_arg(ap, struct addrinfo *);
-
-	memset(&sentinel, 0, sizeof(sentinel));
-	cur = &sentinel;
-	int gai_error = hc_getaddrinfo(name, NULL, pai, &cur);
-	if (gai_error != EAI_SYSTEM) {
-		*((struct addrinfo **)rv) = sentinel.ai_next;
-		return (gai_error == 0 ? NS_SUCCESS : NS_NOTFOUND);
-	}
 
 //	fprintf(stderr, "_files_getaddrinfo() name = '%s'\n", name);
 	memset(&sentinel, 0, sizeof(sentinel));

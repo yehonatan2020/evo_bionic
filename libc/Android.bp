@@ -91,32 +91,15 @@ cc_defaults {
     // warning since this is intended right now.
     ldflags: ["-Wl,-z,muldefs"],
 
-    multilib: {
-        lib64: {
-            product_variables: {
-                malloc_zero_contents: {
-                    cflags: ["-DSCUDO_ZERO_CONTENTS"],
-                },
-                malloc_pattern_fill_contents: {
-                    cflags: ["-DSCUDO_PATTERN_FILL_CONTENTS"],
-                },
-                malloc_not_svelte: {
-                    cflags: ["-DUSE_SCUDO"],
-                },
-            },
+    product_variables: {
+        malloc_zero_contents: {
+            cflags: ["-DSCUDO_ZERO_CONTENTS"],
         },
-        lib32: {
-            product_variables: {
-                malloc_zero_contents: {
-                    cflags: ["-DSCUDO_ZERO_CONTENTS"],
-                },
-                malloc_pattern_fill_contents: {
-                    cflags: ["-DSCUDO_PATTERN_FILL_CONTENTS"],
-                },
-                malloc_not_svelte_libc32: {
-                    cflags: ["-DUSE_SCUDO"],
-                },
-            },
+        malloc_pattern_fill_contents: {
+            cflags: ["-DSCUDO_PATTERN_FILL_CONTENTS"],
+        },
+        malloc_not_svelte: {
+            cflags: ["-DUSE_SCUDO"],
         },
     },
 
@@ -140,18 +123,6 @@ libc_scudo_product_variables = {
     },
 }
 
-libc32_scudo_product_variables = {
-    malloc_not_svelte_libc32: {
-        cflags: ["-DUSE_SCUDO"],
-        whole_static_libs: ["libscudo"],
-        exclude_static_libs: [
-            "libjemalloc5",
-            "libc_jemalloc_wrapper",
-        ],
-    },
-}
-
-
 // Defaults for native allocator libs/includes to make it
 // easier to change.
 // To disable scudo for the non-svelte config remove the line:
@@ -166,14 +137,7 @@ cc_defaults {
         "libc_jemalloc_wrapper",
     ],
     header_libs: ["gwp_asan_headers"],
-    multilib: {
-        lib64: {
-            product_variables: libc_scudo_product_variables,
-        },
-        lib32: {
-            product_variables: libc32_scudo_product_variables,
-        }
-    },
+    product_variables: libc_scudo_product_variables,
 }
 
 // Functions not implemented by jemalloc directly, or that need to
@@ -1952,7 +1916,7 @@ cc_library_headers {
 // libstdc++.so and libstdc++.a.
 // ========================================================
 
-cc_defaults {
+cc_library {
     defaults: ["libc_defaults"],
     include_dirs: ["bionic/libstdc++/include"],
     srcs: [
@@ -1960,7 +1924,7 @@ cc_defaults {
         "bionic/__cxa_pure_virtual.cpp",
         "bionic/new.cpp",
     ],
-    name: "libstdc++_defaults",
+    name: "libstdc++",
     static_ndk_lib: true,
     static_libs: ["libasync_safe"],
     apex_available: [
@@ -2001,17 +1965,6 @@ cc_defaults {
             version_script: ":libstdc++.x86_64.map",
         },
     },
-}
-
-cc_library {
-    name: "libstdc++",
-    defaults: ["libstdc++_defaults"],
-}
-
-cc_library_shared {
-    name: "libstdc++_vendor",
-    defaults: ["libstdc++_defaults"],
-    vendor: true,
 }
 
 genrule {
